@@ -1,0 +1,1359 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.8.8/semantic.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/dataTables.semanticui.min.css">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.4/js/dataTables.semanticui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.8.8/semantic.min.js"></script>
+    <script src="https://unpkg.com/vue@3"></script>
+    <script src="https://unpkg.com/axios@1.1.2/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <title>Whatsapp Web Multi</title>
+
+    <style>
+        .container {
+            padding-top: 2em;
+        }
+    </style>
+</head>
+<body>
+<div class="ui container" id="app">
+    <h1 class="ui header center aligned">[[ app_name ]]</h1>
+
+    <div class="ui success message" v-if="connected_devices != null">
+        <div class="header">
+            Device is connected
+        </div>
+        <p>
+            Device ID: <b>[[ connected_devices[0].device ]]</b>
+        </p>
+    </div>
+
+    <div class="ui horizontal divider">
+        App
+    </div>
+
+    <div class="ui three column stackable grid cards">
+        <div class="green card" @click="loginModal" style="cursor: pointer">
+            <div class="content">
+                <div class="header">Login</div>
+                <div class="description">
+                    Scan your QRCode and you can use all this API feature
+                </div>
+            </div>
+        </div>
+        <div class="green card" @click="logoutProcess" style="cursor: pointer">
+            <div class="content">
+                <div class="header">Logout</div>
+                <div class="description">
+                    Remove your login session in application
+                </div>
+            </div>
+        </div>
+        <div class="green card" @click="reconnectProcess" style="cursor: pointer">
+            <div class="content">
+                <div class="header">Reconnect</div>
+                <div class="description">
+                    Reconnect to whatsapp server, please do this if your api doesn't work or your application is down or
+                    restart
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui horizontal divider">
+        Message
+    </div>
+
+    <div class="ui three column doubling grid cards">
+        <div class="blue card" @click="sendMessageModal()" style="cursor: pointer">
+            <div class="content">
+                <a class="ui blue right ribbon label">Send</a>
+                <div class="header">Send Message</div>
+                <div class="description">
+                    Send any message to any whatsapp number
+                </div>
+            </div>
+        </div>
+        <div class="blue card" @click="sendImageModal()" style="cursor:pointer;">
+            <div class="content">
+                <a class="ui blue right ribbon label">Send</a>
+                <div class="header">Send Image</div>
+                <div class="description">
+                    Send image with
+                    <div class="ui blue horizontal label">jpg/jpeg/png</div>
+                    type
+                </div>
+            </div>
+        </div>
+        <div class="blue card" @click="sendFileModal()" style="cursor: pointer">
+            <div class="content">
+                <a class="ui blue right ribbon label">Send</a>
+                <div class="header">Send File</div>
+                <div class="description">
+                    Send any file up to
+                    <div class="ui blue horizontal label">{{ .MaxFileSize }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="blue card" @click="sendVideoModal()" style="cursor: pointer">
+            <div class="content">
+                <a class="ui blue right ribbon label">Send</a>
+                <div class="header">Send Video</div>
+                <div class="description">
+                    Send video
+                    <div class="ui blue horizontal label">mp4</div>
+                    up to
+                    <div class="ui blue horizontal label">{{ .MaxVideoSize }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="blue card" @click="sendContactModal()" style="cursor: pointer">
+            <div class="content">
+                <a class="ui blue right ribbon label">Send</a>
+                <div class="header">Send Contact</div>
+                <div class="description">
+                    Send contact to any whatsapp number
+                </div>
+            </div>
+        </div>
+        <div class="red card" @click="sendRevokeModal()" style="cursor: pointer">
+            <div class="content">
+                <a class="ui red right ribbon label">Revoke</a>
+                <div class="header">Revoke Message</div>
+                <div class="description">
+                    Revoke any message in private or group chat
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui horizontal divider">
+        Account
+    </div>
+
+    <div class="ui four column doubling grid cards">
+        <div class="green card" @click="avatarModal" style="cursor: pointer;">
+            <div class="content">
+                <div class="header">Avatar</div>
+                <div class="description">
+                    You can search someone avatar by phone
+                </div>
+            </div>
+        </div>
+        <div class="green card" @click="infoModal" style="cursor: pointer;">
+            <div class="content">
+                <div class="header">User Info</div>
+                <div class="description">
+                    You can search someone user info by phone
+                </div>
+            </div>
+        </div>
+        <div class="green card" @click="groupModal" style="cursor: pointer">
+            <div class="content">
+                <div class="header">My List Groups</div>
+                <div class="description">
+                    Display all groups you joined
+                </div>
+            </div>
+        </div>
+        <div class="green card" @click="privacyModal" style="cursor: pointer">
+            <div class="content">
+                <div class="header">My Privacy Setting</div>
+                <div class="description">
+                    Get your privacy settings
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!--  Modal Login  -->
+    <div class="ui small modal" id="modalLogin">
+        <i class="close icon"></i>
+        <div class="header">
+            Login Whatsapp
+        </div>
+        <div class="image content">
+            <div class="ui medium image">
+                <img :src="login_link" alt="qrCodeLogin">
+            </div>
+            <div class="description">
+                <div class="ui header">Please scan to connect</div>
+                <p>Open Setting > Linked Devices > Link Device</p>
+                <div style="padding-top: 50px;">
+                    <i>Refresh QR Code in [[ login_duration_sec ]] seconds to avoid link expiration</i>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui approve positive right labeled icon button" @click="loginApiGetQrCode">
+                Refresh QR Code
+                <i class="refresh icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!--  Modal SendMessage  -->
+    <div class="ui small modal" id="modalSendMessage">
+        <i class="close icon"></i>
+        <div class="header">
+            Send Message
+        </div>
+        <div class="content">
+            <form class="ui form">
+                <div class="field">
+                    <label>Type</label>
+                    <select name="message_type" v-model="message_type" aria-label="type">
+                        <option value="group">Group Message</option>
+                        <option value="user">Private Message</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Phone / Group ID</label>
+                    <input v-model="message_phone" type="text" placeholder="6289..."
+                           aria-label="phone">
+                    <input :value="message_phone_id" disabled aria-label="whatsapp_id">
+                </div>
+                <div class="field">
+                    <label>Message</label>
+                    <input v-model="message_text" type="text" placeholder="Hello this is message text"
+                           aria-label="message">
+                </div>
+            </form>
+        </div>
+        <div class="actions">
+            <div class="ui approve positive right labeled icon button" :class="{'loading': this.message_loading}"
+                 @click="sendMessageProcess">
+                Send
+                <i class="send icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!--  Modal SendImage  -->
+    <div class="ui small modal" id="modalSendImage">
+        <i class="close icon"></i>
+        <div class="header">
+            Send Image
+        </div>
+        <div class="content">
+            <form class="ui form">
+                <div class="field">
+                    <label>Type</label>
+                    <select name="image_type" v-model="image_type" aria-label="type">
+                        <option value="group">Group Message</option>
+                        <option value="user">Private Message</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Phone / Group ID</label>
+                    <input v-model="image_phone" type="text" placeholder="6289..."
+                           aria-label="phone">
+                    <input :value="image_phone_id" disabled aria-label="whatsapp_id">
+                </div>
+                <div class="field">
+                    <label>Caption</label>
+                    <input v-model="image_caption" type="text" placeholder="Hello this is image caption"
+                           aria-label="caption">
+                </div>
+                <div class="field">
+                    <label>View Once</label>
+                    <div class="ui toggle checkbox">
+                        <input type="checkbox" aria-label="view once" v-model="image_view_once">
+                        <label>Check for enable one time view</label>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Compress</label>
+                    <div class="ui toggle checkbox">
+                        <input type="checkbox" aria-label="view once" v-model="image_compress">
+                        <label>Check for compressing image to smaller size</label>
+                    </div>
+                </div>
+                <div class="field" style="padding-bottom: 30px">
+                    <label>Image</label>
+                    <input type="file" class="inputfile" id="image_file" style="display: none"
+                           accept="image/png,image/jpg,image/jpeg"/>
+                    <label for="image_file" class="ui positive medium green left floated button" style="color: white">
+                        <i class="ui upload icon"></i>
+                        Upload image
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="actions">
+            <div class="ui approve positive right labeled icon button" :class="{'loading': this.image_loading}"
+                 @click="sendImageProcess">
+                Send
+                <i class="send icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!--  Modal SendFile  -->
+    <div class="ui small modal" id="modalSendFile">
+        <i class="close icon"></i>
+        <div class="header">
+            Send File
+        </div>
+        <div class="content">
+            <form class="ui form">
+                <div class="field">
+                    <label>Type</label>
+                    <select name="file_type" v-model="file_type" aria-label="type">
+                        <option value="group">Group Message</option>
+                        <option value="user">Private Message</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Phone / Group ID</label>
+                    <input v-model="file_phone" type="text" placeholder="6289..."
+                           aria-label="phone">
+                    <input :value="file_phone_id" disabled aria-label="whatsapp_id">
+                </div>
+                <div class="field">
+                    <label>Caption</label>
+                    <input v-model="file_caption" type="text" placeholder="Type some caption (optional)..."
+                           aria-label="caption">
+                </div>
+                <div class="field" style="padding-bottom: 30px">
+                    <label>File</label>
+                    <input type="file" class="inputfile" id="file_file" style="display: none"/>
+                    <label for="file_file" class="ui positive medium green left floated button" style="color: white">
+                        <i class="ui upload icon"></i>
+                        Upload file
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="actions">
+            <div class="ui approve positive right labeled icon button" :class="{'loading': this.file_loading}"
+                 @click="sendFileProcess">
+                Send
+                <i class="send icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!--  Modal SendVideo  -->
+    <div class="ui small modal" id="modalSendVideo">
+        <i class="close icon"></i>
+        <div class="header">
+            Send Video
+        </div>
+        <div class="content">
+            <form class="ui form">
+                <div class="field">
+                    <label>Type</label>
+                    <select name="video_type" v-model="video_type" aria-label="type">
+                        <option value="group">Group Message</option>
+                        <option value="user">Private Message</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Phone / Group ID</label>
+                    <input v-model="video_phone" type="text" placeholder="6289..."
+                           aria-label="phone">
+                </div>
+                <div class="field">
+                    <label>Caption</label>
+                    <input v-model="video_caption" type="text" placeholder="Type some caption (optional)..."
+                           aria-label="caption">
+                    <input :value="video_phone_id" disabled aria-label="whatsapp_id">
+                </div>
+                <div class="field">
+                    <label>View Once</label>
+                    <div class="ui toggle checkbox">
+                        <input type="checkbox" aria-label="view once" v-model="video_view_once">
+                        <label>Check for enable one time view</label>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Compress</label>
+                    <div class="ui toggle checkbox">
+                        <input type="checkbox" aria-label="view once" v-model="video_compress">
+                        <label>Check for compressing image to smaller size</label>
+                    </div>
+                </div>
+                <div class="field" style="padding-bottom: 30px">
+                    <label>Video</label>
+                    <input type="file" class="inputfile" id="video_file" style="display: none" accept="video/*"/>
+                    <label for="video_file" class="ui positive medium green left floated button" style="color: white">
+                        <i class="ui upload icon"></i>
+                        Upload video
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="actions">
+            <div class="ui approve positive right labeled icon button" :class="{'loading': this.video_loading}"
+                 @click="sendVideoProcess">
+                Send
+                <i class="send icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!--  Modal SendContact  -->
+    <div class="ui small modal" id="modalSendContact">
+        <i class="close icon"></i>
+        <div class="header">
+            Send Contact
+        </div>
+        <div class="content">
+            <form class="ui form">
+                <div class="field">
+                    <label>Type</label>
+                    <select name="contact_type" v-model="contact_type" aria-label="type">
+                        <option value="group">Group Message</option>
+                        <option value="user">Private Message</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Phone / Group ID</label>
+                    <input v-model="contact_phone" type="text" placeholder="6289..."
+                           aria-label="phone">
+                    <input :value="contact_phone_id" disabled aria-label="whatsapp_id">
+                </div>
+                <div class="field">
+                    <label>Contact Name</label>
+                    <input v-model="contact_card_name" type="text" placeholder="Please enter contact name"
+                           aria-label="card_name">
+                </div>
+                <div class="field">
+                    <label>Contact Phone</label>
+                    <input v-model="contact_card_phone" type="text" placeholder="Please enter contact phone"
+                           aria-label="card_phone">
+                </div>
+            </form>
+        </div>
+        <div class="actions">
+            <div class="ui approve positive right labeled icon button" :class="{'loading': this.contact_loading}"
+                 @click="sendContactProcess">
+                Send
+                <i class="send icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!--  Modal SendRevoke  -->
+    <div class="ui small modal" id="modalSendRevoke">
+        <i class="close icon"></i>
+        <div class="header">
+            Send Revoke
+        </div>
+        <div class="content">
+            <form class="ui form">
+                <div class="field">
+                    <label>Type</label>
+                    <select name="revoke_type" v-model="revoke_type" aria-label="type">
+                        <option value="group">Group Message</option>
+                        <option value="user">Private Message</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Phone / Group ID</label>
+                    <input v-model="revoke_phone" type="text" placeholder="6289..."
+                           aria-label="phone">
+                    <input :value="revoke_phone_id" disabled aria-label="whatsapp_id">
+                </div>
+                <div class="field">
+                    <label>Revoke Message ID</label>
+                    <input v-model="revoke_message_id" type="text" placeholder="Please enter your message id"
+                           aria-label="card_phone">
+                </div>
+            </form>
+        </div>
+        <div class="actions">
+            <div class="ui approve positive right labeled icon button" :class="{'loading': this.revoke_loading}"
+                 @click="sendRevokeProcess">
+                Send
+                <i class="send icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!--  Modal UserGroup  -->
+    <div class="ui small modal" id="modalUserGroup">
+        <i class="close icon"></i>
+        <div class="header">
+            My Group List
+        </div>
+        <div class="content">
+            <table class="ui celled table" id="user_groups_table">
+                <thead>
+                <tr>
+                    <th>Group ID</th>
+                    <th>Name</th>
+                    <th>Participants</th>
+                    <th>Created At</th>
+                </tr>
+                </thead>
+                <tbody v-if="data_groups != null">
+                <tr v-for="g in data_groups">
+                    <td>[[ g.JID.split('@')[0] ]]</td>
+                    <td>[[ g.Name ]]</td>
+                    <td>[[ g.Participants.length ]]</td>
+                    <td>[[ formatDate(g.GroupCreated) ]]</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!--  Modal UserPrivacy  -->
+    <div class="ui small modal" id="modalUserPrivacy">
+        <i class="close icon"></i>
+        <div class="header">
+            My Privacy
+        </div>
+        <div class="content">
+            <ol v-if="data_privacy != null">
+                <li>Who can add Group : <b>[[ data_privacy.group_add ]]</b></li>
+                <li>Who can see my Last Seen : <b>[[ data_privacy.last_seen ]]</b></li>
+                <li>Who can see my Status : <b>[[ data_privacy.status ]]</b></li>
+                <li>Who can see my Profile : <b>[[ data_privacy.profile ]]</b></li>
+                <li>Read Receipts : <b>[[ data_privacy.read_receipts ]]</b></li>
+            </ol>
+        </div>
+    </div>
+
+    <!--  Modal UserAvatar  -->
+    <div class="ui small modal" id="modalUserAvatar">
+        <i class="close icon"></i>
+        <div class="header">
+            Search User Avatar
+        </div>
+        <div class="content">
+            <form class="ui form">
+                <div class="field">
+                    <label>Type</label>
+                    <select name="avatar_type" v-model="avatar_type" aria-label="type">
+                        <option value="group">Group Message</option>
+                        <option value="user">Private Message</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Phone</label>
+                    <input v-model="avatar_phone" type="text" placeholder="6289..."
+                           aria-label="phone">
+                    <input :value="avatar_phone_id" disabled aria-label="whatsapp_id">
+                </div>
+
+                <button type="button" class="ui primary button" :class="{'loading': avatar_loading}"
+                        @click="avatarProcess">
+                    Search
+                </button>
+            </form>
+
+            <div v-if="avatar_image != null" class="center">
+                <img :src="avatar_image" alt="profile picture" style="padding-top: 10px; max-height: 200px">
+            </div>
+        </div>
+    </div>
+
+    <!--  Modal UserInfo  -->
+    <div class="ui small modal" id="modalUserInfo">
+        <i class="close icon"></i>
+        <div class="header">
+            Search User Information
+        </div>
+        <div class="content">
+            <form class="ui form">
+                <div class="field">
+                    <label>Type</label>
+                    <select name="info_type" v-model="info_type" aria-label="type">
+                        <option value="user">Private Message</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Phone</label>
+                    <input v-model="info_phone" type="text" placeholder="6289..."
+                           aria-label="phone">
+                    <input :value="info_phone_id" disabled aria-label="whatsapp_id">
+                </div>
+
+                <button type="button" class="ui primary button" :class="{'loading': info_loading}"
+                        @click="infoProcess">
+                    Search
+                </button>
+            </form>
+
+            <div v-if="info_devices.length > 0" class="center">
+                <ol>
+                    <li>Nama: [[ info_name ]]</li>
+                    <li>Status: [[ info_status ]]</li>
+                    <li>Device:
+                        <ul>
+                            <li v-for="d in info_devices">
+                                [[ d.Device ]]
+                            </li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const http = axios.create({
+        baseURL: {{ .AppHost }}
+    });
+    {{ if isEnableBasicAuth .BasicAuthToken }}
+    http.defaults.headers.common['Authorization'] = {{ .BasicAuthToken }};
+    {{ end }}
+    const showErrorInfo = (message) => {
+        $('body').toast({
+            position: 'bottom right',
+            title: 'Error',
+            message: message,
+            showProgress: 'bottom',
+            classProgress: 'red'
+        });
+    }
+    const showSuccessInfo = (message) => {
+        $('body').toast({
+            position: 'bottom right',
+            title: 'Success',
+            message: message,
+            showProgress: 'bottom',
+            classProgress: 'green'
+        });
+    }
+
+    const login = {
+        data() {
+            return {
+                login_link: '',
+                login_duration_sec: 0,
+                autoUpdateQRCode: null,
+            }
+        },
+        methods: {
+            async loginModal() {
+                try {
+                    await this.loginApiGetQrCode();
+                    $('#modalLogin').modal({
+                        onApprove: function () {
+                            return false;
+                        }
+                    }).modal('show');
+                } catch (err) {
+                    showErrorInfo(err)
+                }
+            },
+            loginApiGetQrCode() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        let response = await http.get(`/app/login`)
+                        let results = response.data.results;
+                        this.login_link = results.qr_link;
+                        this.login_duration_sec = results.qr_duration;
+                        resolve()
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    }
+                })
+            }
+        }
+    }
+
+    const logout = {
+        methods: {
+            async logoutProcess() {
+                try {
+                    await this.logoutApi()
+                    showSuccessInfo("Logout success")
+
+                    // fetch devices
+                    this.app_ws.send(JSON.stringify({"code": "FETCH_DEVICES"}))
+                } catch (err) {
+                    showErrorInfo(err)
+                }
+            },
+
+            logoutApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        await http.get(`/app/logout`)
+                        resolve()
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    }
+                })
+            }
+        }
+    }
+
+    const reconnect = {
+        methods: {
+            async reconnectProcess() {
+                try {
+                    await this.reconnectApi()
+                    showSuccessInfo("Reconnect success")
+                    // fetch devices
+                    this.app_ws.send(JSON.stringify({"code": "FETCH_DEVICES"}))
+                } catch (err) {
+                    showErrorInfo(err)
+                }
+            },
+
+            reconnectApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        await http.get(`/app/reconnect`)
+                        resolve()
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    }
+                })
+            }
+        }
+    }
+
+    const sendMessage = {
+        data() {
+            return {
+                message_type: 'user',
+                message_phone: '',
+                message_text: '',
+                message_loading: false,
+            }
+        },
+        computed: {
+            message_phone_id() {
+                return this.message_type === 'user' ? `${this.message_phone}@${this.type_user}` : `${this.message_phone}@${this.type_group}`
+            }
+        },
+        methods: {
+            sendMessageModal() {
+                $('#modalSendMessage').modal({
+                    onApprove: function () {
+                        return false;
+                    }
+                }).modal('show');
+            },
+            async sendMessageProcess() {
+                try {
+                    let response = await this.sendMessageApi()
+                    showSuccessInfo(response)
+                    $('#modalSendMessage').modal('hide');
+                } catch (err) {
+                    showErrorInfo(err)
+                }
+            },
+            sendMessageApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        this.message_loading = true;
+                        let payload = new FormData();
+                        payload.append("phone", this.message_phone_id)
+                        payload.append("message", this.message_text)
+                        let response = await http.post(`/send/message`, payload)
+                        this.sendMessageReset();
+                        resolve(response.data.message)
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    } finally {
+                        this.message_loading = false;
+                    }
+                })
+            },
+            sendMessageReset() {
+                this.message_phone = '';
+                this.message_text = '';
+                this.message_type = 'user';
+            },
+        }
+    }
+
+    const sendImage = {
+        data() {
+            return {
+                image_phone: '',
+                image_view_once: false,
+                image_compress: false,
+                image_caption: '',
+                image_type: 'user',
+                image_loading: false,
+            }
+        },
+        computed: {
+            image_phone_id() {
+                return this.image_type === 'user' ? `${this.image_phone}@${this.type_user}` : `${this.image_phone}@${this.type_group}`
+            }
+        },
+        methods: {
+            sendImageModal() {
+                $('#modalSendImage').modal({
+                    onApprove: function () {
+                        return false;
+                    }
+                }).modal('show');
+            },
+            async sendImageProcess() {
+                try {
+                    let response = await this.sendImageApi()
+                    showSuccessInfo(response)
+                    $('#modalSendImage').modal('hide');
+                } catch (err) {
+                    showErrorInfo(err)
+                }
+            },
+            sendImageApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        this.image_loading = true;
+                        let payload = new FormData();
+                        payload.append("phone", this.image_phone_id)
+                        payload.append("view_once", this.image_view_once)
+                        payload.append("compress", this.image_compress)
+                        payload.append("caption", this.image_caption)
+                        payload.append("image", $("#image_file")[0].files[0])
+                        let response = await http.post(`/send/image`, payload)
+                        this.sendImageReset();
+                        resolve(response.data.message)
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    } finally {
+                        this.image_loading = false;
+                    }
+                })
+            },
+            sendImageReset() {
+                this.image_view_once = false;
+                this.image_compress = false;
+                this.image_phone = '';
+                this.image_caption = '';
+                this.image_type = 'user';
+                $("#image_file").val('');
+            },
+        }
+    }
+
+    const sendFile = {
+        data() {
+            return {
+                file_caption: '',
+                file_type: 'user',
+                file_phone: '',
+                file_loading: false,
+            }
+        },
+        computed: {
+            file_phone_id() {
+                return this.file_type === 'user' ? `${this.file_phone}@${this.type_user}` : `${this.file_phone}@${this.type_group}`
+            }
+        },
+        methods: {
+            sendFileModal() {
+                $('#modalSendFile').modal({
+                    onApprove: function () {
+                        return false;
+                    }
+                }).modal('show');
+            },
+            async sendFileProcess() {
+                try {
+                    let response = await this.sendFileApi()
+                    showSuccessInfo(response)
+                    $('#modalSendFile').modal('hide');
+                } catch (err) {
+                    showErrorInfo(err)
+                }
+            },
+            sendFileApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        this.file_loading = true;
+                        let payload = new FormData();
+                        payload.append("caption", this.file_caption)
+                        payload.append("phone", this.file_phone_id)
+                        payload.append("file", $("#file_file")[0].files[0])
+                        let response = await http.post(`/send/file`, payload)
+                        this.sendFileReset();
+                        resolve(response.data.message)
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    } finally {
+                        this.file_loading = false;
+                    }
+                })
+            },
+            sendFileReset() {
+                this.file_caption = '';
+                this.file_phone = '';
+                this.file_type = 'user';
+                $("#file_file").val('');
+            },
+        }
+    }
+
+    const sendVideo = {
+        data() {
+            return {
+                video_caption: '',
+                video_view_once: false,
+                video_compress: false,
+                video_type: 'user',
+                video_phone: '',
+                video_loading: false,
+            }
+        },
+        computed: {
+            video_phone_id() {
+                return this.video_type === 'user' ? `${this.video_phone}@${this.type_user}` : `${this.video_phone}@${this.type_group}`
+            }
+        },
+        methods: {
+            sendVideoModal() {
+                $('#modalSendVideo').modal({
+                    onApprove: function () {
+                        return false;
+                    }
+                }).modal('show');
+            },
+            async sendVideoProcess() {
+                try {
+                    let response = await this.sendVideoApi()
+                    showSuccessInfo(response)
+                    $('#modalSendVideo').modal('hide');
+                } catch (err) {
+                    showErrorInfo(err)
+                }
+            },
+            sendVideoApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        this.video_loading = true;
+                        let payload = new FormData();
+                        payload.append("phone", this.video_phone_id)
+                        payload.append("caption", this.video_caption)
+                        payload.append("view_once", this.video_view_once)
+                        payload.append("compress", this.video_compress)
+                        payload.append("video", $("#video_file")[0].files[0])
+                        let response = await http.post(`/send/video`, payload)
+                        this.sendVideoReset();
+                        resolve(response.data.message)
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    } finally {
+                        this.video_loading = false;
+                    }
+                })
+            },
+            sendVideoReset() {
+                this.video_caption = '';
+                this.video_view_once = false;
+                this.video_compress = false;
+                this.video_phone = '';
+                this.video_type = 'user';
+                $("#video_file").val('');
+            },
+        }
+    }
+
+    const sendContact = {
+        data() {
+            return {
+                contact_type: 'user',
+                contact_phone: '',
+                contact_card_name: '',
+                contact_card_phone: '',
+                contact_loading: false,
+            }
+        },
+        computed: {
+            contact_phone_id() {
+                return this.contact_type === 'user' ? `${this.contact_phone}@${this.type_user}` : `${this.contact_phone}@${this.type_group}`
+            }
+        },
+        methods: {
+            sendContactModal() {
+                $('#modalSendContact').modal({
+                    onApprove: function () {
+                        return false;
+                    }
+                }).modal('show');
+            },
+            async sendContactProcess() {
+                try {
+                    this.contact_loading = true;
+                    let response = await this.sendContactApi()
+                    showSuccessInfo(response)
+                    $('#modalSendContact').modal('hide');
+                } catch (err) {
+                    showErrorInfo(err)
+                } finally {
+                    this.contact_loading = false;
+                }
+            },
+            sendContactApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        let payload = new FormData();
+                        payload.append("phone", this.contact_phone_id)
+                        payload.append("contact_name", this.contact_card_name)
+                        payload.append("contact_phone", this.contact_card_phone)
+                        let response = await http.post(`/send/contact`, payload)
+                        this.sendContactReset();
+                        resolve(response.data.message)
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    }
+                })
+            },
+            sendContactReset() {
+                this.contact_phone = '';
+                this.contact_card_name = '';
+                this.contact_card_phone = '';
+                this.contact_type = 'user';
+            },
+        }
+    }
+
+    const sendRevoke = {
+        data() {
+            return {
+                revoke_type: 'user',
+                revoke_phone: '',
+                revoke_message_id: '',
+                revoke_loading: false,
+            }
+        },
+        computed: {
+            revoke_phone_id() {
+                return this.revoke_type === 'user' ? `${this.revoke_phone}@${this.type_user}` : `${this.revoke_phone}@${this.type_group}`
+            }
+        },
+        methods: {
+            sendRevokeModal() {
+                $('#modalSendRevoke').modal({
+                    onApprove: function () {
+                        return false;
+                    }
+                }).modal('show');
+            },
+            async sendRevokeProcess() {
+                try {
+                    let response = await this.sendRevokeApi()
+                    showSuccessInfo(response)
+                    $('#modalSendRevoke').modal('hide');
+                } catch (err) {
+                    showErrorInfo(err)
+                }
+            },
+            sendRevokeApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        this.revoke_loading = true;
+                        let payload = new FormData();
+                        payload.append("phone", this.revoke_phone_id)
+                        let response = await http.post(`/message/${this.revoke_message_id}/revoke`, payload)
+                        this.sendRevokeReset();
+                        resolve(response.data.message)
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    } finally {
+                        this.revoke_loading = false;
+                    }
+                })
+            },
+            sendRevokeReset() {
+                this.revoke_phone = '';
+                this.revoke_message_id = '';
+                this.revoke_type = 'user';
+            },
+        }
+    }
+
+    const userGroups = {
+        data() {
+            return {
+                data_groups: []
+            }
+        },
+        methods: {
+            async groupModal() {
+                try {
+                    await this.groupApi();
+                    $('#modalUserGroup').modal('show');
+                    $('#user_groups_table').DataTable().destroy();
+                    $('#user_groups_table').DataTable({
+                        "pageLength": 100,
+                    });
+                    showSuccessInfo("Groups fetched")
+                } catch (err) {
+                    showErrorInfo(err)
+                }
+            },
+            groupApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        let response = await http.get(`/user/my/groups`)
+                        this.data_groups = response.data.results.data;
+                        resolve()
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    }
+                })
+            }
+        }
+    }
+
+    const userPrivacy = {
+        data() {
+            return {
+                data_privacy: null
+            }
+        },
+        methods: {
+            async privacyModal() {
+                try {
+                    await this.privacyApi();
+                    $('#modalUserPrivacy').modal('show');
+                    showSuccessInfo("Privacy fetched")
+                } catch (err) {
+                    showErrorInfo(err)
+                }
+            },
+            privacyApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        let response = await http.get(`/user/my/privacy`)
+                        this.data_privacy = response.data.results;
+                        resolve()
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    }
+                })
+            }
+        }
+    }
+
+    const userAvatar = {
+        data() {
+            return {
+                avatar_type: 'user',
+                avatar_phone: '',
+                avatar_image: null,
+                avatar_loading: false,
+            }
+        },
+        computed: {
+            avatar_phone_id() {
+                return this.avatar_type === 'user' ? `${this.avatar_phone}@${this.type_user}` : `${this.avatar_phone}@${this.type_group}`
+            }
+        },
+        methods: {
+            async avatarModal() {
+                this.avatarReset();
+                $('#modalUserAvatar').modal('show');
+            },
+            async avatarProcess() {
+                try {
+                    this.avatar_loading = true;
+                    await this.avatarApi();
+                    this.avatar_loading = false;
+                    showSuccessInfo("Avatar fetched")
+                } catch (err) {
+                    this.avatar_loading = false;
+                    showErrorInfo(err)
+                }
+            },
+            avatarApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        let response = await http.get(`/user/avatar?phone=${this.avatar_phone_id}`)
+                        this.avatar_image = response.data.results.url;
+                        resolve()
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    }
+                })
+            },
+            avatarReset() {
+                this.avatar_phone = '';
+                this.avatar_image = null;
+                this.avatar_type = 'user';
+            }
+        }
+    }
+
+    const userInfo = {
+        data() {
+            return {
+                info_type: 'user',
+                info_phone: '',
+                //
+                info_name: null,
+                info_status: null,
+                info_devices: [],
+                //
+                info_loading: false,
+            }
+        },
+
+        computed: {
+            info_phone_id() {
+                return this.info_type === 'user' ? `${this.info_phone}@${this.type_user}` : `${this.info_phone}@${this.type_group}`
+            }
+        },
+        methods: {
+            async infoModal() {
+                this.infoReset();
+                $('#modalUserInfo').modal('show');
+            },
+            async infoProcess() {
+                try {
+                    this.info_loading = true;
+                    await this.infoApi();
+                    this.info_loading = false;
+                    showSuccessInfo("Info fetched")
+                } catch (err) {
+                    this.info_loading = false;
+                    showErrorInfo(err)
+                }
+            },
+            infoApi() {
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        let response = await http.get(`/user/info?phone=${this.info_phone_id}`)
+                        this.info_name = response.data.results.verified_name;
+                        this.info_status = response.data.results.status;
+                        this.info_devices = response.data.results.devices;
+                        resolve()
+                    } catch (error) {
+                        if (error.response) {
+                            reject(error.response.data.message)
+                        } else {
+                            reject(error.message)
+                        }
+                    }
+                })
+            },
+            infoReset() {
+                this.info_phone = '';
+                this.info_name = null;
+                this.info_status = null;
+                this.info_devices = [];
+                this.info_type = 'user';
+            }
+        }
+    }
+
+    Vue.createApp({
+        delimiters: ['[[', ']]'],
+        data() {
+            return {
+                app_ws: null,
+                app_host: {{ .AppHost }},
+                app_name: 'Whatsapp API Multi Device ({{ .AppVersion }})',
+                is_logged_in: false,
+                connected_devices: null,
+                type_group: "g.us",
+                type_user: "s.whatsapp.net"
+            }
+        },
+        mounted() {
+            if (window["WebSocket"]) {
+                let wsType = location.protocol !== 'https:' ? 'ws://' : 'wss://';
+                this.app_ws = new WebSocket(wsType + document.location.host + "/ws");
+
+                this.app_ws.onopen = (evt) => {
+                    this.app_ws.send(JSON.stringify({
+                        "code": "FETCH_DEVICES",
+                        "message": "List device"
+                    }))
+                };
+
+                this.app_ws.onmessage = (evt) => {
+                    const message = JSON.parse(evt.data)
+                    switch (message.code) {
+                        case 'LOGIN_SUCCESS':
+                            showSuccessInfo(message.message)
+                            $('#modalLogin').modal('hide');
+
+                            // fetch devices
+                            this.app_ws.send(JSON.stringify({"code": "FETCH_DEVICES"}))
+                            break;
+                        case 'LIST_DEVICES':
+                            this.connected_devices = message.result
+                            break;
+                        default:
+                            console.log(message)
+                    }
+                };
+            } else {
+                console.error('Your browser does not support WebSockets');
+            }
+        },
+        methods: {
+            formatDate: function (value) {
+                if (!value) return ''
+                const tanggal = moment(value)
+                return tanggal.format('LLL');
+            }
+        },
+        mixins: [login, logout, reconnect, sendMessage, sendImage, sendFile, sendVideo, sendContact, sendRevoke, userGroups, userPrivacy, userAvatar, userInfo]
+    }).mount('#app')
+</script>
+</body>
+</html>
