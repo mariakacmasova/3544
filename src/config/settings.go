@@ -7,7 +7,7 @@ import (
 
 var (
 	AppVersion             = "v4.0.0"
-	AppPort                = "3000"
+	AppPort                = "3544"
 	AppDebug               = true
 	AppOs                  = fmt.Sprintf("Chrome")
 	AppPlatform            = waProto.DeviceProps_PlatformType(1)
